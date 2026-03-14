@@ -15,55 +15,44 @@ This repository contains the configuration for a resilient AWS network with the 
 ### Network Diagram
 
 ```mermaid
-flowchart TB
-    User([External Traffic])
-    R53((Amazon Route 53))
+architecture-beta
+    group aws(cloud)[AWS Cloud]
+    group vpc(cloud)[Virtual Private Cloud] in aws
     
-    User --> R53
-
-    subgraph AWS [AWS Cloud]
-        subgraph VPC [Virtual Private Cloud]
-            R53 --> ALB{{Load Balancer}}
-            
-            subgraph AZ1 [Availability Zone 1]
-                direction TB
-                subgraph Public1 [Public Subnet 1]
-                    ALB1[ALB Node 1]
-                    NAT1(NAT Gateway 1)
-                end
-                subgraph Private1 [Private Subnet 1]
-                    App1[App Server Instances]
-                end
-            end
-            
-            subgraph AZ2 [Availability Zone 2]
-                direction TB
-                subgraph Public2 [Public Subnet 2]
-                    ALB2[ALB Node 2]
-                    NAT2(NAT Gateway 2)
-                end
-                subgraph Private2 [Private Subnet 2]
-                    App2[App Server Instances]
-                end
-            end
-            
-            ALB --> ALB1
-            ALB --> ALB2
-            ALB1 --> App1
-            ALB2 --> App2
-            App1 -.->|Outbound| NAT1
-            App2 -.->|Outbound| NAT2
-            
-            ASG[Auto Scaling Group] -.- App1
-            ASG -.- App2
-        end
-    end
+    group az1(cloud)[Availability Zone 1] in vpc
+    group public1(cloud)[Public Subnet 1] in az1
+    group private1(cloud)[Private Subnet 1] in az1
     
-    NAT1 -.->|To Internet| User
-    NAT2 -.->|To Internet| User
-
-    classDef publicSubnet fill:#e6f3ff,stroke:#3388ff,stroke-width:2px,color:#000;
-    classDef privateSubnet fill:#ffe6e6,stroke:#ff3333,stroke-width:2px,color:#000;
-    class Public1,Public2 publicSubnet;
-    class Private1,Private2 privateSubnet;
+    group az2(cloud)[Availability Zone 2] in vpc
+    group public2(cloud)[Public Subnet 2] in az2
+    group private2(cloud)[Private Subnet 2] in az2
+    
+    service user(internet)[External Traffic]
+    service r53(aws-route53)[Amazon Route 53]
+    
+    service alb(aws-elastic-load-balancing)[Load Balancer] in vpc
+    
+    service alb1(aws-elastic-load-balancing)[ALB Node 1] in public1
+    service nat1(aws-nat-gateway)[NAT Gateway 1] in public1
+    service app1(aws-ec2)[App Server Instances] in private1
+    
+    service alb2(aws-elastic-load-balancing)[ALB Node 2] in public2
+    service nat2(aws-nat-gateway)[NAT Gateway 2] in public2
+    service app2(aws-ec2)[App Server Instances] in private2
+    
+    service asg(aws-auto-scaling)[Auto Scaling Group] in vpc
+    
+    user:T --> B:r53
+    r53:B --> T:alb
+    alb:B --> T:alb1
+    alb:B --> T:alb2
+    
+    alb1:B --> T:app1
+    alb2:B --> T:app2
+    
+    app1:L --> R:nat1
+    app2:L --> R:nat2
+    
+    nat1:T --> B:user
+    nat2:T --> B:user
 ```
