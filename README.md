@@ -14,4 +14,4 @@ This repository contains the configuration for a resilient AWS network with the 
 
 ### Network Diagram
 
-![AWS Network Architecture](network-architecture.svg)
+![AWS Network Architecture](network-architecture.png)
