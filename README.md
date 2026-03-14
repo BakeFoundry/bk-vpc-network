@@ -20,12 +20,12 @@ architecture-beta
     group vpc(cloud)[Virtual Private Cloud] in aws
     
     group az1(cloud)[Availability Zone 1] in vpc
-    group public1(cloud)[Public Subnet 1] in az1
-    group private1(cloud)[Private Subnet 1] in az1
+    group public1(cloud)[Public Subnet] in az1
+    group private1(cloud)[Private Subnet] in az1
     
     group az2(cloud)[Availability Zone 2] in vpc
-    group public2(cloud)[Public Subnet 2] in az2
-    group private2(cloud)[Private Subnet 2] in az2
+    group public2(cloud)[Public Subnet] in az2
+    group private2(cloud)[Private Subnet] in az2
     
     service user(internet)[External Traffic]
     service r53(aws-route53)[Amazon Route 53]
@@ -42,7 +42,7 @@ architecture-beta
     
     service asg(aws-auto-scaling)[Auto Scaling Group] in vpc
     
-    user:T --> B:r53
+    user:B --> T:r53
     r53:B --> T:alb
     alb:B --> T:alb1
     alb:B --> T:alb2
@@ -50,8 +50,8 @@ architecture-beta
     alb1:B --> T:app1
     alb2:B --> T:app2
     
-    app1:L --> R:nat1
-    app2:L --> R:nat2
+    app1:R --> L:nat1
+    app2:R --> L:nat2
     
     nat1:T --> B:user
     nat2:T --> B:user
