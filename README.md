@@ -11,7 +11,3 @@ This repository contains the configuration for a resilient AWS network with the 
 - **Compute & Load Balancing**: 
   - An **Application Load Balancer (ALB)** is placed in the Public Subnets to distribute incoming external traffic.
   - An **Auto Scaling Group (ASG)** spans the Private Subnets, provisioning the application servers where the app is deployed.
-
-### Network Diagram
-
-![AWS Network Architecture](network-architecture.png)
