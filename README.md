@@ -15,44 +15,82 @@ This repository contains the configuration for a resilient AWS network with the 
 ### Network Diagram
 
 ```mermaid
-architecture-beta
-    group aws(cloud)[AWS Cloud]
-    group vpc(cloud)[Virtual Private Cloud] in aws
+flowchart TD
+    %% Define AWS Icons for diagram elements
+    classDef awsIcon fill:none,stroke:none,color:#000
     
-    group az1(cloud)[Availability Zone 1] in vpc
-    group public1(cloud)[Public Subnet] in az1
-    group private1(cloud)[Private Subnet] in az1
+    %% Users
+    User["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/main/dist/General/User.png' width='50' height='50' /><br>External Traffic"]:::awsIcon
     
-    group az2(cloud)[Availability Zone 2] in vpc
-    group public2(cloud)[Public Subnet] in az2
-    group private2(cloud)[Private Subnet] in az2
+    %% AWS Services
+    R53["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/main/dist/NetworkingAndContentDelivery/Route53.png' width='50' height='50' /><br>Amazon Route 53"]:::awsIcon
     
-    service user(internet)[External Traffic]
-    service r53(aws-route53)[Amazon Route 53]
+    ALB["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/main/dist/NetworkingAndContentDelivery/ElasticLoadBalancing.png' width='50' height='50' /><br>Load Balancer"]:::awsIcon
     
-    service alb(aws-elastic-load-balancing)[Load Balancer] in vpc
+    ALB1["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/main/dist/NetworkingAndContentDelivery/ElasticLoadBalancing.png' width='50' height='50' /><br>ALB Node 1"]:::awsIcon
+    ALB2["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/main/dist/NetworkingAndContentDelivery/ElasticLoadBalancing.png' width='50' height='50' /><br>ALB Node 2"]:::awsIcon
     
-    service alb1(aws-elastic-load-balancing)[ALB Node 1] in public1
-    service nat1(aws-nat-gateway)[NAT Gateway 1] in public1
-    service app1(aws-ec2)[App Server Instances] in private1
+    NAT1["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/main/dist/NetworkingAndContentDelivery/NATGateway.png' width='50' height='50' /><br>NAT Gateway 1"]:::awsIcon
+    NAT2["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/main/dist/NetworkingAndContentDelivery/NATGateway.png' width='50' height='50' /><br>NAT Gateway 2"]:::awsIcon
     
-    service alb2(aws-elastic-load-balancing)[ALB Node 2] in public2
-    service nat2(aws-nat-gateway)[NAT Gateway 2] in public2
-    service app2(aws-ec2)[App Server Instances] in private2
+    App1["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/main/dist/Compute/EC2Instance.png' width='50' height='50' /><br>App Server Instances"]:::awsIcon
+    App2["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/main/dist/Compute/EC2Instance.png' width='50' height='50' /><br>App Server Instances"]:::awsIcon
     
-    service asg(aws-auto-scaling)[Auto Scaling Group] in vpc
+    ASG["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/main/dist/Compute/AutoScaling.png' width='50' height='50' /><br>Auto Scaling Group"]:::awsIcon
     
-    user:B --> T:r53
-    r53:B --> T:alb
-    alb:B --> T:alb1
-    alb:B --> T:alb2
+    User --> R53
     
-    alb1:B --> T:app1
-    alb2:B --> T:app2
+    subgraph AWS [AWS Cloud]
+        subgraph VPC [Virtual Private Cloud]
+            %% Route 53 points to ALB
+            R53 --> ALB
+            
+            subgraph AZ1 [Availability Zone 1]
+                direction TB
+                subgraph Public1 [Public Subnet]
+                    ALB1
+                    NAT1
+                end
+                subgraph Private1 [Private Subnet]
+                    App1
+                end
+            end
+            
+            subgraph AZ2 [Availability Zone 2]
+                direction TB
+                subgraph Public2 [Public Subnet]
+                    ALB2
+                    NAT2
+                end
+                subgraph Private2 [Private Subnet]
+                    App2
+                end
+            end
+            
+            %% ALB distributes traffic
+            ALB --> ALB1
+            ALB --> ALB2
+            ALB1 --> App1
+            ALB2 --> App2
+            
+            %% App servers connect to NAT for outbound
+            App1 -.->|Outbound| NAT1
+            App2 -.->|Outbound| NAT2
+            
+            %% Auto scaling controls app servers
+            ASG -.- App1
+            ASG -.- App2
+        end
+    end
     
-    app1:R --> L:nat1
-    app2:R --> L:nat2
-    
-    nat1:T --> B:user
-    nat2:T --> B:user
+    NAT1 -.->|To Internet| User
+    NAT2 -.->|To Internet| User
+
+    %% Styling for Subnets
+    classDef publicSubnet fill:#e6f3ff,stroke:#3388ff,stroke-width:2px,color:#000,stroke-dasharray: 5 5;
+    classDef privateSubnet fill:#ffe6e6,stroke:#ff3333,stroke-width:2px,color:#000,stroke-dasharray: 5 5;
+    class Public1,Public2 publicSubnet;
+    class Private1,Private2 privateSubnet;
+    classDef cloudBox fill:none,stroke:#232f3e,stroke-width:2px,color:#000;
+    class AWS,VPC,AZ1,AZ2 cloudBox;
 ```
