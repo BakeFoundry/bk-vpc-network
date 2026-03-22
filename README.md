@@ -1,6 +1,7 @@
 # bk-vpc-network
 
-![AWS Network Architecture](AWS-Architecture/Slide1.PNG)
+![AWS Network Architecture](AWS-Architecture.png)
+
 
 
 This repository contains the configuration for a resilient AWS network with the following architecture:
