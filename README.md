@@ -1,8 +1,7 @@
 # bk-vpc-network
 
-![AWS Network Architecture](AWS-Architecture.png)
+![AWS Network Architecture](AWS-Architecture/Slide1.PNG)
 
-## AWS Network Architecture
 
 This repository contains the configuration for a resilient AWS network with the following architecture:
 - **Virtual Private Cloud (VPC)** spanning two Availability Zones (AZs).
